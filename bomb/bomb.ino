@@ -1,6 +1,9 @@
 #include <Wire.h>
 #include <LiquidCrystal_PCF8574.h>
 #include <Keypad.h>
+#include <SoftwareSerial.h>
+#include <DFPlayer_Mini_Mp3.h>
+
 
 LiquidCrystal_PCF8574 lcd(0x3F);
 
@@ -25,25 +28,33 @@ String min_str;
 int sec = 40;
 int _min = 0;
 
-int pass_count = 4;
+int pass_count = 10;
 
-String pass_r = "1245";
+String pass_r;
 String pass_h;
 
-boolean pass_ch() {
+
+
+boolean pass_inp() {
   while (1) {
     lcd.clear();
+
     lcd.setCursor(3, 0);
     lcd.print("Enter pass");
     lcd.setCursor(3, 1);
     lcd.print("**********");
     lcd.setCursor(3, 1);
+
     lcd.blink();
+
     int i = 0;
     for (i; i < pass_count; i++) {
+
       char c = keypad.waitForKey();
       pass_h += String(c);
+
       lcd.setCursor(i + round(8 - pass_count / 2), 1);
+
       if (c == 'C') {
         lcd.clear();
         lcd.setCursor(3, 0);
@@ -58,8 +69,8 @@ boolean pass_ch() {
         lcd.print(c);
       }
     }
+
     lcd.noBlink();
-    // Serial.print(pass_h);
 
     if (pass_h == pass_r) {
       pass_h = "";
@@ -67,12 +78,57 @@ boolean pass_ch() {
     }
     else {
       lcd.clear();
-      lcd.setCursor(3, 0);
-      lcd.print("PASS_ERRORR");
-      tone(11,900,500);
-      delay(500);
-      pass_h = "";
+      boom();
     }
+  }
+  // last_time = millis() - millis() % 100;
+}
+/* else if (millis() - millis() % 100 - last_time == 10000) {
+
+  } // char key = keypad.getKey();
+*/
+
+boolean pass_ch() {
+
+  while (1) {
+
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("Enter pass");
+    lcd.setCursor(3, 1);
+    lcd.print("**********");
+    lcd.setCursor(3, 1);
+    lcd.blink();
+
+    int i = 0;
+    for (i; i < pass_count; i++) {
+
+      char c = keypad.waitForKey();
+      pass_h += String(c);
+
+      lcd.setCursor(i + round(8 - pass_count / 2), 1);
+
+      if (c == 'C') {
+        lcd.clear();
+        lcd.setCursor(3, 0);
+        lcd.print("Enter pass");
+        lcd.setCursor(3, 1);
+        lcd.print("**********");
+        lcd.setCursor(3, 1);
+        i = -1;
+        pass_h = "";
+      }
+      else {
+        lcd.print(c);
+      }
+    }
+
+    lcd.noBlink();
+    // Serial.print(pass_h);
+
+    pass_r =  pass_h ;
+    pass_h = "";
+    return 1;
   }
 }
 
@@ -92,27 +148,39 @@ void start() {
   }
 }
 
-void def() {
+
+
+
+
+
+void timer() {
+  lcd.clear();
+  lcd.setCursor(5, 0);
+  lcd.print("--:--");
+  lcd.setCursor(5, 0);
+  lcd.blink();
+  int i = 0;
+  for (i; i <= 1; i++) {
+    char c = keypad.waitForKey();
+    min_str += String(c);
+    lcd.setCursor(i + 5, 0);
+    lcd.print(c);
+    _min = min_str.toInt();
+  }
+  i = 0;
+  for (i; i <= 1; i++) {
+    char a = keypad.waitForKey();
+    sec_str += String(a);
+    lcd.setCursor(i + 8, 0);
+    lcd.print(a);
+    sec = sec_str.toInt();
+  }
+
+  last_time = millis() - millis() % 100 - 1000;
 
   lcd.clear();
-
-  if (pass_ch() == 1) {
-    lcd.clear();
-    digitalWrite(12, 0);
-    digitalWrite(13, 1);
-    lcd.setCursor(1, 1);
-    lcd.print("YOU WIN!");
-    tone(11, 3210, 500);
-
-  }
-  /*
-    else if (millis() - millis() % 100 - last_time == 10000) {
-    last_time = millis() - millis() % 100;
-    }
-  */
-}
-void timer() {
   while (1) {
+
     lcd.setCursor(1, 1);
     lcd.print("Press B to def");
 
@@ -128,9 +196,10 @@ void timer() {
         def();
       }
 
-      
-      tone(11, 1000, 20);//тиканье 
+      //  tone(11, 1000, 20);//тиканье
+
       --sec;
+
       lcd.setCursor(5, 0);
       if (_min < 10 && sec < 10) {
         lcd.print("0" + String(_min) + ":"  + "0" + String(sec));
@@ -150,34 +219,65 @@ void timer() {
 
       if (sec == 0 && _min == 0) {
         lcd.clear();
-        lcd.setCursor(2, 0);
-        lcd.print("time is over");
-        tone(11, 1000,5000); //взрыв
-        break;
+        boom();
       }
     }
 
   }
 }
 
+void boom() {
+  while (1) {
+    lcd.clear();
+    lcd.setCursor(3, 0);
+    lcd.print("YOU LOSE");
+    delay(500);
+    //   tone(11, 1000, 5000); //взрыв
+  }
+}
+void def() {
 
+  lcd.clear();
+
+  if (pass_inp()) {
+   
+      lcd.clear();
+      digitalWrite(12, 0);
+      digitalWrite(13, 1);
+      lcd.setCursor(4, 0);
+      lcd.print("YOU WIN!");
+      delay(500);
+      while (1) { }
+      // tone(11, 3210, 500);
+   
+  }
+
+}
 
 
 void setup() {
   pinMode(12, OUTPUT);
   pinMode(13, OUTPUT);
+
+  Serial.begin (9600);
+  mp3_set_serial (Serial);
+  mp3_set_volume (15);
+
   Wire.begin();
   Wire.beginTransmission(0x3F);
+
   lcd.begin(16, 2);
   lcd.setBacklight(255);
   lcd.home();
   lcd.clear();
-  Serial.begin(9600);
+
   start();
-  last_time = millis() - millis() % 100 - 1000;  
+
+  last_time = millis() - millis() % 100 - 1000;
+
   timer();
 }
 
 void loop() {
-  
+
 }
