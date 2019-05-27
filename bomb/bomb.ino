@@ -78,6 +78,7 @@ boolean pass_inp() {
     }
     else {
       lcd.clear();
+      mp3_play(9);
       boom();
     }
   }
@@ -195,16 +196,23 @@ void timer() {
       if (key == 'B') {
         def();
       }
-
-      //  tone(11, 1000, 20);//тиканье
-
+        mp3_play(11);//тиканье
       --sec;
-
+      if (_min == 1 && sec == 30) {
+        mp3_play(2);
+      }
+      else if (_min == 1 && sec == 0) {
+        mp3_play(3);
+      }
+      else if (_min == 0 && sec == 30) {
+        mp3_play(4);
+      }
+      else if (_min == 0 && sec == 15) {
+        mp3_play(5);
+      }
       lcd.setCursor(5, 0);
       if (_min < 10 && sec < 10) {
         lcd.print("0" + String(_min) + ":"  + "0" + String(sec));
-        tone(11, 1000, 20);
-        tone(11, 1000, 20);
       }
       else if (sec < 10) {
         lcd.print(String(_min) + ":" + "0" + String(sec));
@@ -227,29 +235,32 @@ void timer() {
 }
 
 void boom() {
+  mp3_play(10);
+  mp3_play(6);
+  lcd.clear();
+  lcd.setCursor(3, 0);
+  lcd.print("YOU LOSE");
+  delay(500);
   while (1) {
-    lcd.clear();
-    lcd.setCursor(3, 0);
-    lcd.print("YOU LOSE");
-    delay(500);
     //   tone(11, 1000, 5000); //взрыв
   }
 }
 void def() {
-
+  mp3_play(7);
   lcd.clear();
 
   if (pass_inp()) {
-   
-      lcd.clear();
-      digitalWrite(12, 0);
-      digitalWrite(13, 1);
-      lcd.setCursor(4, 0);
-      lcd.print("YOU WIN!");
-      delay(500);
-      while (1) { }
-      // tone(11, 3210, 500);
-   
+
+    lcd.clear();
+    digitalWrite(12, 0);
+    digitalWrite(13, 1);
+    lcd.setCursor(4, 0);
+    lcd.print("YOU WIN!");
+    mp3_play(8);
+    delay(500);
+    while (1) { }
+    // tone(11, 3210, 500);
+
   }
 
 }
