@@ -85,7 +85,6 @@ boolean pass_inp() {
   // last_time = millis() - millis() % 100;
 }
 /* else if (millis() - millis() % 100 - last_time == 10000) {
-
   } // char key = keypad.getKey();
 */
 
@@ -175,6 +174,7 @@ void timer() {
     lcd.setCursor(i + 8, 0);
     lcd.print(a);
     sec = sec_str.toInt();
+    sec++;
   }
 
   last_time = millis() - millis() % 100 - 1000;
@@ -196,7 +196,6 @@ void timer() {
       if (key == 'B') {
         def();
       }
-        mp3_play(11);//тиканье
       --sec;
       if (_min == 1 && sec == 30) {
         mp3_play(2);
